@@ -25,3 +25,5 @@ https://documenter.getpostman.com/view/10599009/SzRxUpUG?version=latest
 cd hw1
 docker build -t hw1_app:latest . && docker-compose up
 ```
+## Бонусные баллы
+Реализовано хранение в бд
