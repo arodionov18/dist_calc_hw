@@ -7,16 +7,16 @@ services:
       - 8088:8088
     restart: always
     environment:
-      DATABASE_URL: postgres://postgres:@localhost/postgres
-      BIND_ADDR: "0.0.0.0:8080"
+      DATABASE_URL: postgres://postgres:password@db/postgres
+      BIND_ADDR: "0.0.0.0:8088"
     command: bash -c "./tools/wait.sh db:5432 -- ./hw1"
     links:
       - db
 
   db:
     image: postgres
-    #environment:
-      #-POSTGRES_PASSWORD: password
+    environment:
+      POSTGRES_PASSWORD: password
       #POSTGRES_HOST_AUTH_METHOD: trust
       #-PGDATA: /var/lib/postgresql/data
     restart: always
