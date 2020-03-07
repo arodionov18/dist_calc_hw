@@ -64,8 +64,6 @@ impl ProductList {
             products
                 .load::<Product>(&connection)
                 .expect("Error loading products");
-
-        // We return a value by leaving it without a comma
         ProductList(result)
     }
 }

@@ -46,7 +46,7 @@ async fn main() -> std::io::Result<()> {
                 .route(web::patch().to(handlers::update))
             )
     })
-        .bind("bind_addr")?
+        .bind(bind_addr)?
         .run()
         .await
 }
