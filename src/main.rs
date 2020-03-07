@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
+    let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| String::from("0.0.0.0:8088"));
     let connection = db::establish_connection();
     embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
     HttpServer::new(|| {
@@ -45,7 +46,7 @@ async fn main() -> std::io::Result<()> {
                 .route(web::patch().to(handlers::update))
             )
     })
-        .bind("127.0.0.1:8088")?
+        .bind("bind_addr")?
         .run()
         .await
 }

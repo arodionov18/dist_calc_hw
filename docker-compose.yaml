@@ -6,25 +6,17 @@ services:
     ports:
       - 8088:8088
     restart: always
-    #command: ["./tools/wait.sh", "db:5432", "--", "./hw1"]
+    environment:
+      DATABASE_URL: postgres://postgres:@localhost/postgres
+      BIND_ADDR: "0.0.0.0:8080"
+    command: bash -c "./tools/wait.sh db:5432 -- ./hw1"
     links:
       - db
-    networks:
-      - net
 
   db:
     image: postgres
-    ports:
-      - 5432:5432
-    #volumes:
-    #  - ./db:/var/lib/postgresql/data
-    environment:
+    #environment:
       #-POSTGRES_PASSWORD: password
-      POSTGRES_HOST_AUTH_METHOD: trust
+      #POSTGRES_HOST_AUTH_METHOD: trust
       #-PGDATA: /var/lib/postgresql/data
     restart: always
-    networks:
-      - net
-
-networks:
-  net:
