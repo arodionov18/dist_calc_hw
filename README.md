@@ -15,6 +15,9 @@
 - уникального кода (`id`)
 - категории число или название
 
+## Postman
+https://documenter.getpostman.com/view/10599009/SzRxUpUG?version=latest
+
 ## Запуск
 Для запуска требуется собрать докер образ и запустить через `docker-compose`
 
