@@ -3,10 +3,6 @@ use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use crate::models::{Product, ProductList, NewProduct};
 
 pub async fn insert(new_product: web::Json<NewProduct>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
-
-    // we call the method create from NewProduct and map an ok status response when
-    // everything works, but map the error from diesel error 
-    // to an internal server error when something fails.
     new_product
         .create()
         .map(|product| HttpResponse::Ok().json(product))
