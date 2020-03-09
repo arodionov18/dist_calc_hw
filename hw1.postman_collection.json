@@ -36,7 +36,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"id\": 2,\n    \"name\": \"shoes\",\n    \"category\": \"3\"\n}",
+					"raw": "{\n    \"id\": 6,\n    \"name\": \"shoes\",\n    \"category\": \"3\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -44,13 +44,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8088/new_product",
+					"raw": "localhost:8088/product",
 					"host": [
 						"localhost"
 					],
 					"port": "8088",
 					"path": [
-						"new_product"
+						"product"
 					]
 				}
 			},
@@ -114,13 +114,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8088/products",
+					"raw": "localhost:8088/products?offset=2&limit=3",
 					"host": [
 						"localhost"
 					],
 					"port": "8088",
 					"path": [
 						"products"
+					],
+					"query": [
+						{
+							"key": "offset",
+							"value": "2"
+						},
+						{
+							"key": "limit",
+							"value": "3"
+						}
 					]
 				}
 			},
