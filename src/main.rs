@@ -34,7 +34,7 @@ async fn main() -> std::io::Result<()> {
                 web::resource("/products")
                 .route(web::get().to(handlers::get_list)))
             .service(
-                web::resource("/new_product")
+                web::resource("/product")
                 .route(web::post().to(handlers::insert)))
             .service(
                 web::resource("/")

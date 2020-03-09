@@ -1,6 +1,6 @@
 #[macro_use]
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
-use crate::models::{Product, ProductList, NewProduct};
+use crate::models::{Product, ProductList, NewProduct, ListQuery};
 
 pub async fn insert(new_product: web::Json<NewProduct>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
     new_product
@@ -11,8 +11,8 @@ pub async fn insert(new_product: web::Json<NewProduct>, req: HttpRequest) -> Res
         })
 }
 
-pub async fn get_list(_req: HttpRequest) -> HttpResponse {
-    HttpResponse::Ok().json(ProductList::list())
+pub async fn get_list(web::Query(query): web::Query<ListQuery>) -> HttpResponse {
+    HttpResponse::Ok().json(ProductList::list(query))
 }
 
 pub async fn get_one(id: web::Path<i32>) -> Result<HttpResponse, HttpResponse> {

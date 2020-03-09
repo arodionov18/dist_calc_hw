@@ -42,6 +42,12 @@ impl Product {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ListQuery {
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
+}
+
 impl NewProduct {
     pub fn create(&self) -> Result<Product, diesel::result::Error> {
         let connection = establish_connection();
@@ -55,13 +61,16 @@ impl NewProduct {
 pub struct ProductList(pub Vec<Product>);
 
 impl ProductList {
-    pub fn list() -> Self {
+    pub fn list(query: ListQuery) -> Self {
         use crate::schema::products::dsl::*;
 
         let connection = establish_connection();
 
         let result = 
             products
+                .order(id)
+                .limit(query.limit.unwrap_or(std::i64::MAX))
+                .offset(query.offset.unwrap_or(0))
                 .load::<Product>(&connection)
                 .expect("Error loading products");
         ProductList(result)
