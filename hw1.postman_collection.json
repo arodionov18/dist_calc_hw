@@ -26,10 +26,32 @@
 		{
 			"name": "add item",
 			"request": {
-				"method": "GET",
-				"header": [],
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 2,\n    \"name\": \"shoes\",\n    \"category\": \"3\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": ""
+					"raw": "localhost:8088/new_product",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"new_product"
+					]
 				}
 			},
 			"response": []
@@ -38,9 +60,31 @@
 			"name": "show item",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "id",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
 				"url": {
-					"raw": ""
+					"raw": "localhost:8088/product/2?",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"product",
+						"2"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1",
+							"disabled": true
+						}
+					]
 				}
 			},
 			"response": []
@@ -48,10 +92,18 @@
 		{
 			"name": "delete item",
 			"request": {
-				"method": "GET",
+				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": ""
+					"raw": "localhost:8088/product/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"product",
+						"1"
+					]
 				}
 			},
 			"response": []
@@ -62,7 +114,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": ""
+					"raw": "localhost:8088/products",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"products"
+					]
 				}
 			},
 			"response": []
@@ -70,10 +129,34 @@
 		{
 			"name": "update item",
 			"request": {
-				"method": "GET",
-				"header": [],
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": 2,\n    \"name\": \"socks\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": ""
+					"raw": "localhost:8088/product/2",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"product",
+						"2"
+					]
 				}
 			},
 			"response": []
