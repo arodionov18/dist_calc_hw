@@ -1,6 +1,10 @@
 # Интернет магазин
 Базовый API для интернет магазина
 
+## Архитектура
+<object data='https://pastebin.com/rLnq2i07' type='image/jpeg'></object>
+![architecture](architecture.jpeg)
+
 ## Методы REST API
 Должны быть реализованые следующие методы:
 * добавить новый товар;
@@ -26,4 +30,4 @@ cd hw1
 docker build -t hw1_app:latest . && docker-compose up
 ```
 ## Бонусные баллы
-Реализовано хранение в бд
+Реализовано хранение в бд и пагинация.
