@@ -8,14 +8,13 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
 extern crate actix_web;
 #[macro_use]
 extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 extern crate dotenv;
-use actix_web::{HttpServer, App, web, HttpRequest, HttpResponse, middleware};
+use actix_web::{HttpServer, App, web, middleware};
 
 embed_migrations!("./migrations");
 
@@ -24,8 +23,9 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
+    let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| String::from("0.0.0.0:8088"));
     let connection = db::establish_connection();
-    embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
+    embedded_migrations::run_with_output(&connection, &mut std::io::stdout()).unwrap();
     HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
@@ -33,7 +33,7 @@ async fn main() -> std::io::Result<()> {
                 web::resource("/products")
                 .route(web::get().to(handlers::get_list)))
             .service(
-                web::resource("/new_product")
+                web::resource("/product")
                 .route(web::post().to(handlers::insert)))
             .service(
                 web::resource("/")
@@ -45,7 +45,7 @@ async fn main() -> std::io::Result<()> {
                 .route(web::patch().to(handlers::update))
             )
     })
-        .bind("127.0.0.1:8088")?
+        .bind(bind_addr)?
         .run()
         .await
 }
