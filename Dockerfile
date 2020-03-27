@@ -1,6 +1,12 @@
 FROM rust:1.41.1-stretch AS build
 
-COPY . .
+COPY Cargo.lock Cargo.lock
+COPY Cargo.toml Cargo.toml
+COPY diesel.toml diesel.toml
+COPY .env .env
+COPY src src
+COPY migrations migrations
+COPY tools tools
 RUN cargo build --release
 
 FROM debian:buster-slim

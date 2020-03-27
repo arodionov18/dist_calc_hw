@@ -1,10 +1,7 @@
-
-#[macro_use]
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
 use dotenv::dotenv;
 use std::env;
-use crate::models::{Product, NewProduct};
 
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();

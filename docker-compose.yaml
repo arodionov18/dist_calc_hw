@@ -17,6 +17,4 @@ services:
     image: postgres
     environment:
       POSTGRES_PASSWORD: password
-      #POSTGRES_HOST_AUTH_METHOD: trust
-      #-PGDATA: /var/lib/postgresql/data
     restart: always
