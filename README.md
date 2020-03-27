@@ -2,7 +2,7 @@
 Базовый API для интернет магазина
 
 ## Архитектура
-![Архитектура](https://github.com/arodionov18/dist_calc/raw/hw4/architecture.png)
+![Архитектура](https://github.com/arodionov18/dist_calc_hw/raw/hw4/architecture.png)
 
 ## Методы REST API
 Должны быть реализованые следующие методы:
