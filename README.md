@@ -2,8 +2,7 @@
 Базовый API для интернет магазина
 
 ## Архитектура
-<object data='https://pastebin.com/rLnq2i07' type='image/jpeg'></object>
-![architecture](architecture.jpeg)
+![Архитектура](https://github.com/arodionov18/dist_calc/raw/hw4/architecture.png)
 
 ## Методы REST API
 Должны быть реализованые следующие методы:
