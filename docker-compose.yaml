@@ -1,8 +1,23 @@
 version: "3"
 
 services:
-  app:
-    build: .
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: store
+    ports:
+      - 5432:5432
+    restart: always
+
+  store:
+    build:
+      context: .
+      dockerfile: store/Dockerfile
+    links:
+      - auth
+      - db
     ports:
       - 8088:8088
     restart: always
@@ -10,11 +25,17 @@ services:
       DATABASE_URL: postgres://postgres:password@db/postgres
       BIND_ADDR: "0.0.0.0:8088"
     command: bash -c "./tools/wait.sh db:5432 -- ./hw1"
-    links:
+    depends_on:
       - db
-
-  db:
-    image: postgres
+      - auth
+  
+  auth:
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
     environment:
-      POSTGRES_PASSWORD: password
-    restart: always
+      DATABASE_URL: postgres://postgres:password@db/postgres
+    ports:
+      - 8089:8089
+    depends_on:
+      - db

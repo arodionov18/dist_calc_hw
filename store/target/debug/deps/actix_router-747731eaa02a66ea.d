@@ -1,0 +1,12 @@
+/home/anton/distributed_calculations/hw1/target/debug/deps/actix_router-747731eaa02a66ea.rmeta: /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/lib.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/de.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/path.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/resource.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/router.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/url.rs
+
+/home/anton/distributed_calculations/hw1/target/debug/deps/libactix_router-747731eaa02a66ea.rlib: /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/lib.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/de.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/path.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/resource.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/router.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/url.rs
+
+/home/anton/distributed_calculations/hw1/target/debug/deps/actix_router-747731eaa02a66ea.d: /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/lib.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/de.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/path.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/resource.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/router.rs /home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/url.rs
+
+/home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/lib.rs:
+/home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/de.rs:
+/home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/path.rs:
+/home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/resource.rs:
+/home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/router.rs:
+/home/anton/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-router-0.2.4/src/url.rs:
