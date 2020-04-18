@@ -1,19 +1,21 @@
 use chrono::NaiveDateTime;
 use crate::schema::users;
+use crate::schema::session;
+use crate::jwt;
+use crate::schema::session::dsl;
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Insertable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable)]
 #[table_name = "users"]
 pub struct User {
-    #[serde(skip)] // don't show id
+    //#[serde(skip)] // don't show id
     pub id: i32,
     pub email: String,
-    pub company: String,
     #[serde(skip)] // don't show password
     pub password: String,
     pub created_at: NaiveDateTime
 }
 
-#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
 #[table_name = "users"]
 pub struct NewUser {
     pub email: String,
@@ -21,9 +23,27 @@ pub struct NewUser {
     pub created_at: NaiveDateTime
 }
 
+#[derive(Debug, Serialize, Deserialize, Insertable, Queryable, Associations, AsChangeset, Identifiable)]
+#[belongs_to(parent="User", foreign_key="user_id")]
+#[table_name = "session"]
+pub struct Session {
+    pub id: i32,
+    pub refresh_token: String,
+    pub refresh_token_expire_at: NaiveDateTime,
+    pub user_id: i32
+}
+
+#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
+#[table_name = "session"]
+pub struct NewSession {
+    pub refresh_token: String,
+    pub refresh_token_expire_at: NaiveDateTime,
+    pub user_id: i32
+}
+
 use bcrypt::{hash, DEFAULT_COST};
 use crate::db::establish_connection;
-use chrono::Local;
+use chrono::{Local, Duration};
 use crate::errors::MyStoreError;
 
 impl User {
@@ -33,13 +53,13 @@ impl User {
 
         let connection = establish_connection();
 
-        Ok(diesel.inser_into(users::table)
+        Ok(diesel::insert_into(users::table)
             .values(NewUser {
                 email: register_user.email,
                 password: Self::hash_password(register_user.password)?,
                 created_at: Local::now().naive_local()
             })
-            .get_result(connection)?)
+            .get_result(&connection)?)
     }
 
     pub fn hash_password(plain: String) -> Result<String, MyStoreError> {
@@ -47,7 +67,7 @@ impl User {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct RegisterUser {
     pub email: String,
     pub password: String,
@@ -67,14 +87,106 @@ impl RegisterUser {
     }
 }
 
-#[derive(Deserialize)]
+impl Session {
+    pub fn create(new_session: NewSession) -> Result<Session, MyStoreError> {
+        use diesel::RunQueryDsl;
+
+        let connection = establish_connection();
+
+        Ok(diesel::insert_into(session::table).values(new_session).get_result(&connection)?)
+    }
+}
+
+
+#[derive(Serialize, Deserialize)]
 pub struct AuthUser {
     pub email: String,
     pub password: String
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Tokens {
+    pub access: Option<String>,
+    pub refresh: Option<String>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AccessToken {
+    pub access: String
+}
+
+impl From<Tokens> for AccessToken {
+    fn from(tokens: Tokens) -> Self {
+        AccessToken {
+            access: tokens.access.expect("access")
+        }
+    }
+}
+
+impl Tokens {
+    pub fn refresh(old_tokens: Tokens) -> Result<Tokens, MyStoreError> {
+        use diesel::{QueryDsl, RunQueryDsl, ExpressionMethods};
+        use crate::schema::session::dsl::refresh_token;
+
+        if old_tokens.refresh.is_none() {
+            return Err(MyStoreError::CustomError("Wrong request".to_string()));
+        }
+
+        let connection = establish_connection();
+
+        let mut session_records = session::table
+                        .filter(refresh_token.eq(&old_tokens.refresh.expect("refresh")))
+                        .load::<Session>(&connection)?;
+        let session = session_records.pop().ok_or(MyStoreError::DBError(diesel::result::Error::NotFound))?;
+
+        if session.refresh_token_expire_at >= Local::now().naive_local() {
+            let refresh = libreauth::key::KeyBuilder::new().generate().as_base32();
+
+            let mut user = users::table
+                                    .find(session.user_id).first::<User>(&connection)?;
+            let access = jwt::create_token(&user.email, session.id)?;
+
+            let new_session = NewSession{
+                refresh_token: refresh.clone(),
+                refresh_token_expire_at: (Local::now().naive_local() + Duration::hours(1)),
+                user_id: user.id
+            };
+
+            diesel::update(dsl::session.find(session.id))
+                .set(new_session)
+                .execute(&connection)?;
+            Ok(Tokens{
+                access: serde::export::Some(access),
+                refresh: serde::export::Some(refresh)})
+        } else {
+            Err(MyStoreError::TokenError("Refresh token expired".to_string()))
+        }
+    }
+
+    pub fn validate(&self) -> Result<bool, MyStoreError> {
+        use diesel::{QueryDsl, RunQueryDsl, ExpressionMethods};
+        use crate::schema::session::dsl::refresh_token;
+        
+        if self.access.is_none() {
+            return Err(MyStoreError::CustomError("Wrong request".to_string()));
+        }
+
+        let decoded_claims = jwt::decode_token(self.access.as_ref().expect("access"))?;
+        if decoded_claims.exp < Local::now().timestamp() {
+            return Err(MyStoreError::TokenExpired("Access token expired".to_string()));
+        }
+
+        let connection = establish_connection();
+        let mut session_records = session::table
+                        .filter(crate::schema::session::columns::id.eq(&decoded_claims.session_id))
+                        .load::<Session>(&connection)?;
+        let session = session_records.pop().ok_or(MyStoreError::DBError(diesel::result::Error::NotFound))?;
+        Ok(true)
+    }
+}
+
 impl AuthUser {
-    pub fn login(&self) -> Result<User, MyStoreError> {
+    pub fn login(&self) -> Result<Tokens, MyStoreError> {
         use bcrypt::verify;
         use diesel::{QueryDsl, RunQueryDsl, ExpressionMethods};
         use crate::schema::users::dsl::email;
@@ -83,7 +195,7 @@ impl AuthUser {
 
         let mut records = users::table
                             .filter(email.eq(&self.email))
-                            .load<User>(connection)?;
+                            .load::<User>(&connection)?;
 
         let user = records
                         .pop()
@@ -96,52 +208,20 @@ impl AuthUser {
                                     )
                                 })?;
         
+        
+        let refresh = libreauth::key::KeyBuilder::new().generate().as_base32();
+        let session = Session::create(NewSession {
+            refresh_token: refresh.clone(),
+            refresh_token_expire_at: (Local::now().naive_local() + Duration::hours(1)),
+            user_id: user.id
+        })?;
+        let access = jwt::create_token(&user.email, session.id)?;
         if verify_password {
-            Ok(user)
+            Ok(Tokens{access: serde::export::Some(access), refresh: serde::export::Some(refresh)})
         } else {
             Err(MyStoreError::WrongPassword(
                 "Wrong password".to_string()
             ))
         }
-    }
-}
-
-use actix_web::{ FromRequest, HttpRequest, dev };
-use actix_web::middleware::identity::Identity;
-use crate::jwt::{ decode_token, SlimUser };
-pub type LoggedUser = SlimUser;
-
-use hex;
-use csrf_token::CsrfTokenGenerator;
-
-impl FromRequest for LoggedUser {
-    type Error = HttpResponse;
-    type Config = ();
-    type Future = Result<Self, HttpResponse>;
-
-    fn from_request(req: &HttpRequest, payload: &mut dev::Payload) -> Self::Future {
-        let generator = 
-            req.app_data::<CsrfTokenGenerator>()
-            .ok_or(HttpResponse::InternalServerError())?;
-
-        let csrf_token =
-            req
-                .headers()
-                .get("x-csrf-token")
-                .ok_or(HttpResponse::Unauthorized())?;
-
-        let decoded_token =
-            hex::decode(&csrf_token)
-                .map_err(|error| HttpResponse::InternalServerError().json(error.to_string()))?;
-
-        generator
-            .verify(&decoded_token)
-            .map_err(|_| HttpResponse::Unauthorized())?;
-
-        if let Some(identity) = Identity::from_request(req, payload)?.identity() {
-            let user: SlimUser = decode_token(&identity)?;
-            return Ok(user as LoggedUser);
-        }  
-        Err(HttpResponse::Unauthorized().into())
     }
 }

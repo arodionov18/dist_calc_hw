@@ -22,6 +22,6 @@ bcrypt = "0.6.3"
 diesel = {version = "1.4.4", features = ["postgres", "chrono"]}
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
 chrono = {version = "0.4.11", features = ["serde"]}
-csrf-token = { git = "ssh://git@github.com/3dom-co-jp/csrf-token.git", branch="v0.2.x" }
-# заменить потом на csrf
+libreauth = "0.13.0"

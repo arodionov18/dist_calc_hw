@@ -1,9 +1,11 @@
 use actix_web::web;
-use actix_web::HttpResponse;
-use crate::models::{ User, RegisterUser, AuthUser };
+use actix_web::{HttpResponse, HttpRequest};
+use crate::models::{ User, RegisterUser, AuthUser, Tokens };
+use crate::jwt;
+use crate::errors::MyStoreError;
 
 
-pub fn register(new_user: web::Json(RegisterUser)) -> Result<HttpResponse, HttpResponse> {
+pub async fn register(new_user: web::Json<RegisterUser>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
     let register_user = new_user
         .into_inner()
         .validates()
@@ -17,17 +19,10 @@ pub fn register(new_user: web::Json(RegisterUser)) -> Result<HttpResponse, HttpR
         })
 }
 
-use actix_web::middleware::identity::Identity;
-use crate::jwt;
-use hex;
-use csrf_token::CsrfTokenGenerator;
-
-pub fn login(auth_user: web::Json<AuthUser>,
-             id: Identity,
-             generator: web::Data<CsrfTokenGenerator>)
+pub async fn login(auth_user: web::Json<AuthUser>, req: HttpRequest)
     -> Result<HttpResponse, HttpResponse> {
 
-    let user = auth_user.login()
+    let tokens = auth_user.login()
                         .map_err(|e| {
                             match e {
                                 MyStoreError::DBError(diesel::result::Error::NotFound) =>
@@ -36,17 +31,27 @@ pub fn login(auth_user: web::Json<AuthUser>,
                                     HttpResponse::InternalServerError().json(e.to_string())
                             }
                         })?;
-    
-    let token = jwt::create_token(&user.email)?;
-    id.remember(token);
 
-    let response = HttpResponse::Ok()
-                    .header("X-CSRF-TOKEN", hex::encode(generator.generate()))
-                    .json(user);
-    Ok(response)
+    Ok(HttpResponse::Ok().json(tokens))
 }
 
-pub fn logout(id: Identity) -> Result<HttpResponse, HttpResponse> {
-    id.forget();
-    Ok(HttpResponse::Ok().into())
+pub async fn refresh(tokens: web::Json<Tokens>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
+    //use std::ops::Deref;
+    let new_tokens = Tokens::refresh(tokens.into_inner())
+                        .map_err(|e| {
+                            HttpResponse::InternalServerError().json(e.to_string())
+                        })?;
+    Ok(HttpResponse::Ok().json(new_tokens))
+}
+
+pub async fn validate(req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
+    let tokens = Tokens {
+        access: serde::export::Some(req.headers().get("Auth").map_or_else(|| "", |v| v.to_str().unwrap()).to_string()),
+        refresh: None
+    };
+    let result = tokens.validate()
+                    .map_err(|error| {
+                            HttpResponse::InternalServerError().json(error.to_string())
+                    })?;
+    Ok(HttpResponse::Ok().json(tokens))
 }

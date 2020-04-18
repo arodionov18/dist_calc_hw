@@ -6,7 +6,10 @@ pub enum MyStoreError {
     HashError(BcryptError),
     DBError(result::Error),
     PasswordNotMatch(String),
-    WrongPassword(String)
+    WrongPassword(String),
+    TokenError(String),
+    TokenExpired(String),
+    CustomError(String)
 }
 
 impl From<BcryptError> for MyStoreError {
@@ -27,7 +30,10 @@ impl fmt::Display for MyStoreError {
             MyStoreError::HashError(error) => write!(f, "{}", error),
             MyStoreError::DBError(error) => write!(f, "{}", error), 
             MyStoreError::PasswordNotMatch(error) => write!(f, "{}", error),
-            MyStoreError::WrongPassword(error) => write!(f, "{}", error)
+            MyStoreError::WrongPassword(error) => write!(f, "{}", error),
+            MyStoreError::TokenError(error) => write!(f, "{}", error),
+            MyStoreError::TokenExpired(error) => write!(f, "{}", error),
+            MyStoreError::CustomError(error) => write!(f, "{}", error)
         }
     }
 }

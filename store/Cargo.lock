@@ -864,6 +864,7 @@ dependencies = [
  "diesel_migrations",
  "dotenv",
  "env_logger",
+ "futures",
  "log",
  "serde",
  "serde_derive",

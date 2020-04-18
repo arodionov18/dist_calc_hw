@@ -35,6 +35,7 @@ services:
       dockerfile: auth/Dockerfile
     environment:
       DATABASE_URL: postgres://postgres:password@db/postgres
+    command: bash -c "./tools/wait.sh db:5432 -- ./auth"
     ports:
       - 8089:8089
     depends_on:
