@@ -7,10 +7,10 @@ COPY store/.env store/.env
 COPY store/src store/src
 COPY store/migrations store/migrations
 COPY store/tools store/tools
-RUN cd store && cargo build --release
+RUN cd store && cargo fetch && cargo build
 
 FROM debian:buster-slim
-COPY --from=build store/target/release/hw1 .
+COPY --from=build store/target/debug/hw1 .
 COPY --from=build store/tools/ ./tools
 RUN apt-get update && apt-get -y install libpq5
 RUN chmod +x ./tools/wait.sh

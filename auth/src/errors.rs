@@ -1,6 +1,7 @@
 use std::fmt;
 use bcrypt::BcryptError;
 use diesel::result;
+use amiquip;
 
 pub enum MyStoreError {
     HashError(BcryptError),
@@ -9,6 +10,8 @@ pub enum MyStoreError {
     WrongPassword(String),
     TokenError(String),
     TokenExpired(String),
+    NotConfirmed(String),
+    AMQPError(amiquip::Error),
     CustomError(String)
 }
 
@@ -24,6 +27,12 @@ impl From<result::Error> for MyStoreError {
     }
 }
 
+impl From<amiquip::Error> for MyStoreError {
+    fn from(error: amiquip::Error) -> Self {
+        MyStoreError::AMQPError(error)
+    }
+}
+
 impl fmt::Display for MyStoreError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -33,7 +42,9 @@ impl fmt::Display for MyStoreError {
             MyStoreError::WrongPassword(error) => write!(f, "{}", error),
             MyStoreError::TokenError(error) => write!(f, "{}", error),
             MyStoreError::TokenExpired(error) => write!(f, "{}", error),
-            MyStoreError::CustomError(error) => write!(f, "{}", error)
+            MyStoreError::CustomError(error) => write!(f, "{}", error),
+            MyStoreError::AMQPError(error) => write!(f, "{}", error),
+            MyStoreError::NotConfirmed(error) => write!(f, "Not confirmed user {}", error)
         }
     }
 }

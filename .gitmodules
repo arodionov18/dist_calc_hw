@@ -1,0 +1,3 @@
+[submodule "mock-smtp"]
+	path = mock-smtp
+	url = https://github.com/flaviovs/mock-smtp.git

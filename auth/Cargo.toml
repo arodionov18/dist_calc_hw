@@ -25,3 +25,4 @@ dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
 chrono = {version = "0.4.11", features = ["serde"]}
 libreauth = "0.13.0"
+amiquip = "0.3.3"

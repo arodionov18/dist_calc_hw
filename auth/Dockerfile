@@ -6,12 +6,12 @@ COPY auth/diesel.toml auth/diesel.toml
 COPY auth/.env auth/.env
 COPY auth/src auth/src
 COPY auth/migrations auth/migrations
-RUN cd auth && cargo build --release
+RUN cd auth && cargo fetch && cargo build
 
 COPY auth/tools/ auth/tools
 
 FROM debian:buster-slim
-COPY --from=build auth/target/release/auth .
+COPY --from=build auth/target/debug/auth .
 COPY --from=build auth/tools/ ./tools
 RUN apt-get update && apt-get -y install libpq5
 RUN chmod +x ./tools/wait.sh
