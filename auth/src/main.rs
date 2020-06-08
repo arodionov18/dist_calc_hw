@@ -4,6 +4,7 @@ pub mod db;
 pub mod handlers;
 pub mod jwt;
 pub mod errors;
+pub mod confirm;
 
 extern crate serde;
 #[macro_use]
@@ -19,6 +20,8 @@ extern crate dotenv;
 #[macro_use]
 extern crate dotenv_codegen;
 extern crate libreauth;
+
+extern crate amiquip;
 
 use actix_web::{HttpServer, App, web, middleware};
 use db::establish_connection;
@@ -50,6 +53,10 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::resource("/validate")
                 .route(web::post().to(handlers::validate))
+            )
+            .service(
+                web::resource("/confirm/{token}")
+                .route(web::patch().to(handlers::confirm))
             )
     })
         .bind(bind_addr)?

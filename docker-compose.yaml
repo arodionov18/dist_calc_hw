@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: store
+      POSTGRES_DB: postgres
     ports:
       - 5432:5432
     restart: always
@@ -24,6 +24,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:password@db/postgres
       BIND_ADDR: "0.0.0.0:8088"
+      AUTH_URL: http://auth:8089
     command: bash -c "./tools/wait.sh db:5432 -- ./hw1"
     depends_on:
       - db
@@ -35,8 +36,44 @@ services:
       dockerfile: auth/Dockerfile
     environment:
       DATABASE_URL: postgres://postgres:password@db/postgres
-    command: bash -c "./tools/wait.sh db:5432 -- ./auth"
+      RABBITMQ_URL: amqp://rabbit:5672
+      JWT_SECRET: secret
+    command: bash -c "./tools/wait.sh db:5432 -- ./tools/wait.sh rabbit:5672 -- ./auth"
+    restart: always
     ports:
       - 8089:8089
     depends_on:
       - db
+      - rabbit
+  
+  emailmock:
+    image: reachfive/fake-smtp-server
+    ports: 
+      - "25:1025"
+      - 1080:1080
+  
+  notifications:
+    build:
+      context: .
+      dockerfile: notifications/Dockerfile
+    environment:
+      RABBITMQ_URL: amqp://rabbit:5672
+      FROM_ADDRESS: arodionov18@gmail.com
+      IS_MOCKED: "false"
+      SMTP_SERVER: emailmock
+    command: bash -c "./tools/wait.sh rabbit:5672 -- ./notifications"
+    restart: always
+    ports:
+      - 8090:8090
+    links:
+      - emailmock
+      - rabbit
+    depends_on:
+      - rabbit
+  
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: unless-stopped

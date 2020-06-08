@@ -4,7 +4,7 @@ use crate::schema::session;
 use crate::jwt;
 use crate::schema::session::dsl;
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Identifiable, AsChangeset)]
 #[table_name = "users"]
 pub struct User {
     //#[serde(skip)] // don't show id
@@ -12,7 +12,8 @@ pub struct User {
     pub email: String,
     #[serde(skip)] // don't show password
     pub password: String,
-    pub created_at: NaiveDateTime
+    pub created_at: NaiveDateTime,
+    pub confirmed: i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
@@ -64,6 +65,20 @@ impl User {
 
     pub fn hash_password(plain: String) -> Result<String, MyStoreError> {
         Ok(hash(plain, DEFAULT_COST)?)
+    }
+
+    pub fn make_confirmation(info: jwt::ConfirmInfo) -> Result<(), MyStoreError> {
+        use diesel::{QueryDsl, RunQueryDsl};
+
+        let connection = establish_connection();
+
+        let mut user = users::table.find(info.user_id).first::<User>(&connection)?;
+        
+        user.confirmed = 1;
+
+        diesel::update(users::table.find(info.user_id)).set(user).execute(&connection)?;
+
+        Ok(())
     }
 }
 
@@ -142,8 +157,8 @@ impl Tokens {
         if session.refresh_token_expire_at >= Local::now().naive_local() {
             let refresh = libreauth::key::KeyBuilder::new().generate().as_base32();
 
-            let mut user = users::table
-                                    .find(session.user_id).first::<User>(&connection)?;
+            let user = users::table
+                                .find(session.user_id).first::<User>(&connection)?;
             let access = jwt::create_token(&user.email, session.id)?;
 
             let new_session = NewSession{
@@ -167,20 +182,26 @@ impl Tokens {
         use diesel::{QueryDsl, RunQueryDsl, ExpressionMethods};
         use crate::schema::session::dsl::refresh_token;
         
+        println!("all ok");
+
         if self.access.is_none() {
             return Err(MyStoreError::CustomError("Wrong request".to_string()));
         }
+
+        println!("poprworwp");
 
         let decoded_claims = jwt::decode_token(self.access.as_ref().expect("access"))?;
         if decoded_claims.exp < Local::now().timestamp() {
             return Err(MyStoreError::TokenExpired("Access token expired".to_string()));
         }
+        println!("Still ok");
 
         let connection = establish_connection();
         let mut session_records = session::table
                         .filter(crate::schema::session::columns::id.eq(&decoded_claims.session_id))
                         .load::<Session>(&connection)?;
         let session = session_records.pop().ok_or(MyStoreError::DBError(diesel::result::Error::NotFound))?;
+        println!("Still ok2");
         Ok(true)
     }
 }
@@ -200,6 +221,10 @@ impl AuthUser {
         let user = records
                         .pop()
                         .ok_or(MyStoreError::DBError(diesel::result::Error::NotFound))?;
+        
+        if user.confirmed == 0 {
+            return Err(MyStoreError::NotConfirmed(user.email));
+        }
         
         let verify_password = verify(&self.password, &user.password)
                                 .map_err( |error| {
