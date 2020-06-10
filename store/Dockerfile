@@ -7,6 +7,8 @@ COPY store/.env store/.env
 COPY store/src store/src
 COPY store/migrations store/migrations
 COPY store/tools store/tools
+COPY ../pb  ../pb
+COPY ../protos ../protos
 RUN cd store && cargo fetch && cargo build
 
 FROM debian:buster-slim

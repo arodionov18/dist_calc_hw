@@ -5,6 +5,8 @@ COPY auth/Cargo.toml auth/Cargo.toml
 COPY auth/diesel.toml auth/diesel.toml
 COPY auth/.env auth/.env
 COPY auth/src auth/src
+COPY ../pb  ../pb
+COPY ../protos ../protos
 COPY auth/migrations auth/migrations
 RUN cd auth && cargo fetch && cargo build
 

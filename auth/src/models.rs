@@ -13,7 +13,8 @@ pub struct User {
     #[serde(skip)] // don't show password
     pub password: String,
     pub created_at: NaiveDateTime,
-    pub confirmed: i32
+    pub confirmed: i32,
+    pub role: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
@@ -178,7 +179,7 @@ impl Tokens {
         }
     }
 
-    pub fn validate(&self) -> Result<bool, MyStoreError> {
+    pub fn validate(&self) -> Result<i32, MyStoreError> {
         use diesel::{QueryDsl, RunQueryDsl, ExpressionMethods};
         use crate::schema::session::dsl::refresh_token;
         
@@ -202,8 +203,31 @@ impl Tokens {
                         .load::<Session>(&connection)?;
         let session = session_records.pop().ok_or(MyStoreError::DBError(diesel::result::Error::NotFound))?;
         println!("Still ok2");
-        Ok(true)
+        let user = users::table
+                        .find(session.user_id).first::<User>(&connection)?;
+        Ok(user.role)
     }
+}
+
+pub fn set_role(email: &str) -> Result<(), MyStoreError> {
+    use diesel::{QueryDsl, RunQueryDsl, ExpressionMethods};
+    use crate::schema::users::dsl;
+
+    let connection = establish_connection();
+
+    let mut records = users::table
+                        .filter(dsl::email.eq(&email))
+                        .load::<User>(&connection)?;
+    
+    let mut user = records
+                    .pop()
+                    .ok_or(MyStoreError::DBError(diesel::result::Error::NotFound))?;
+        
+    user.role = 1;
+
+    diesel::update(users::table.find(user.id)).set(user).execute(&connection)?;
+
+    Ok(())
 }
 
 impl AuthUser {

@@ -19,7 +19,6 @@ pub async fn confirm(token: web::Path<String>, req: HttpRequest) -> Result<HttpR
     Ok(HttpResponse::Ok().json("Account confirmed"))
 }
 
-
 pub async fn register(new_user: web::Json<RegisterUser>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
     let register_user = new_user
         .into_inner()
@@ -69,7 +68,74 @@ pub async fn refresh(tokens: web::Json<Tokens>, req: HttpRequest) -> Result<Http
     Ok(HttpResponse::Ok().json(new_tokens))
 }
 
-pub async fn validate(req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
+use tonic::{transport::Server, Request, Response, Status};
+use pb::authentificator_server::{Authentificator, AuthentificatorServer};
+use pb::{VerifyRequest, VerifyResponse, AdminRights};
+
+#[derive(Debug, Default)]
+pub struct MyAuthentificator {}
+
+#[tonic::async_trait]
+impl Authentificator for MyAuthentificator {
+    async fn verify(
+        &self,
+        request: Request<VerifyRequest>) -> Result<Response<VerifyResponse>, Status> {
+        log::info!("Got a request: {:?}", request);
+
+        let tokens = Tokens {
+            access: Some(request.into_inner().token),
+            refresh: None,
+        };
+
+        let result = tokens.validate()
+                        .map_err(|error| {
+                            Status::unauthenticated("")
+                        })?;
+
+        let reply = pb::VerifyResponse {
+            result: result,
+        };
+
+        Ok(Response::new(reply))
+    }
+}
+
+pub async fn set_role(email: web::Json<String>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
+    let tokens = Tokens {
+        access: serde::export::Some(req.headers().get("Auth").map_or_else(|| "", |v| v.to_str().unwrap()).to_string()),
+        refresh: None
+    };
+
+    let result = tokens.validate()
+                    .map_err(|error| {
+                        HttpResponse::Forbidden().json(json!({
+                            "status": 403,
+                            "message": "You should authentificate",
+                            "error": error.to_string()
+                        }))
+                    })?;
+
+    if result != 1 {
+        return Err(HttpResponse::Forbidden().json(json!({
+            "status": 403,
+            "message": "You should be admin"
+        })));
+    }
+
+    let smth = crate::models::set_role(&email).map_err(|error| {
+        HttpResponse::BadRequest().json(json!({
+            "status": 402,
+            "error": error.to_string()
+        }))
+    });
+
+    Ok(HttpResponse::Ok().json(json!({
+        "status": 200,
+        "message": std::format!("user {} now is admin", email)
+    })))
+}
+
+/*pub async fn validate(req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
     let tokens = Tokens {
         access: serde::export::Some(req.headers().get("Auth").map_or_else(|| "", |v| v.to_str().unwrap()).to_string()),
         refresh: None
@@ -81,4 +147,4 @@ pub async fn validate(req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
                     })?;
     println!("Success");
     Ok(HttpResponse::Ok().json(tokens))
-}
+}*/

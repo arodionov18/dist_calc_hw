@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package verification;
+
+service Authentificator {
+    rpc Verify(VerifyRequest) returns (VerifyResponse) {}
+}
+
+enum AdminRights {
+    User = 0;
+    Admin = 1;
+    Unknown = 2;
+}
+
+message VerifyResponse {
+    AdminRights result = 1;
+}
+
+message VerifyRequest {
+    string token = 1;
+}

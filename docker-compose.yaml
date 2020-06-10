@@ -13,8 +13,8 @@ services:
 
   store:
     build:
-      context: .
-      dockerfile: store/Dockerfile
+      context: ./
+      dockerfile: ./Dockerfile
     links:
       - auth
       - db
@@ -25,23 +25,24 @@ services:
       DATABASE_URL: postgres://postgres:password@db/postgres
       BIND_ADDR: "0.0.0.0:8088"
       AUTH_URL: http://auth:8089
-    command: bash -c "./tools/wait.sh db:5432 -- ./hw1"
+    command: bash -c "./tools/wait.sh db:5432"
     depends_on:
       - db
       - auth
   
   auth:
     build:
-      context: .
-      dockerfile: auth/Dockerfile
+      context: ./
+      dockerfile: ./Dockerfile
     environment:
       DATABASE_URL: postgres://postgres:password@db/postgres
       RABBITMQ_URL: amqp://rabbit:5672
       JWT_SECRET: secret
-    command: bash -c "./tools/wait.sh db:5432 -- ./tools/wait.sh rabbit:5672 -- ./auth"
+    command: bash -c "./tools/wait.sh db:5432 -- ./tools/wait.sh rabbit:5672"
     restart: always
     ports:
       - 8089:8089
+      - 50501:50501
     depends_on:
       - db
       - rabbit
@@ -55,13 +56,13 @@ services:
   notifications:
     build:
       context: .
-      dockerfile: notifications/Dockerfile
+      dockerfile: ./Dockerfile
     environment:
       RABBITMQ_URL: amqp://rabbit:5672
       FROM_ADDRESS: arodionov18@gmail.com
       IS_MOCKED: "false"
       SMTP_SERVER: emailmock
-    command: bash -c "./tools/wait.sh rabbit:5672 -- ./notifications"
+    command: bash -c "./tools/wait.sh rabbit:5672"
     restart: always
     ports:
       - 8090:8090

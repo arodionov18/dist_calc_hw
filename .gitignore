@@ -1,4 +1,4 @@
-/store/target/*
-/auth/target/*
-/notifications/target/*
+/store/target/
+/auth/target/
+/notifications/target/
 
