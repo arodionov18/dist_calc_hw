@@ -1,7 +1,7 @@
 FROM rust:1.43.1-stretch AS build
 ARG CRATE
 COPY . .
-RUN cargo fetch
+RUN cargo fetch --manifest-path ${CRATE}/Cargo.toml
 RUN cargo build --bin ${CRATE}
 RUN cp /target/debug/${CRATE} /app
 
