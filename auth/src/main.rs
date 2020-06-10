@@ -39,14 +39,10 @@ async fn main() -> std::io::Result<()> {
     let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| String::from("0.0.0.0:8089"));
     let connection = db::establish_connection();
     embedded_migrations::run_with_output(&connection, &mut std::io::stdout()).unwrap();
-    let grpc_addr = std::env::var("GRPC_ADDR").unwrap_or_else(|_| String::from("0.0.0.0:50501")).parse().unwrap();
+    let grpc_addr = std::env::var("GRPC_ADDR").unwrap_or_else(|_| String::from("0.0.0.0:8091")).parse().unwrap();
     let authentificator = handlers::MyAuthentificator::default();
 
-    Server::builder()
-            .add_service(AuthentificatorServer::new(authentificator))
-            .serve(grpc_addr)
-            .await;
-    log::info!("GRPC server started");
+    models::User::init();
 
     HttpServer::new(|| {
         App::new()
@@ -72,7 +68,14 @@ async fn main() -> std::io::Result<()> {
             )
             
     })
-        .bind(bind_addr)?
+        .bind(bind_addr).unwrap()
         .run()
-        .await
+        .await;
+
+    Server::builder()
+    .add_service(AuthentificatorServer::new(authentificator))
+    .serve(grpc_addr)
+    .await;
+    println!("GRPC server started");
+    Ok(())
 }
