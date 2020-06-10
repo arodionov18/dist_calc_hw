@@ -1,5 +1,5 @@
 [package]
-name = "hw1"
+name = "store"
 version = "0.1.0"
 authors = ["Anton Rodionov <arodionov18@gmail.com>"]
 edition = "2018"
