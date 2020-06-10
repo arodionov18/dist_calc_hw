@@ -25,6 +25,16 @@ pub struct NewUser {
     pub created_at: NaiveDateTime
 }
 
+#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
+#[table_name = "users"]
+pub struct NewAdminUser {
+    pub email: String,
+    pub password: String,
+    pub created_at: NaiveDateTime,
+    pub confirmed: i32,
+    pub role: i32
+}
+
 #[derive(Debug, Serialize, Deserialize, Insertable, Queryable, Associations, AsChangeset, Identifiable)]
 #[belongs_to(parent="User", foreign_key="user_id")]
 #[table_name = "session"]
@@ -79,6 +89,21 @@ impl User {
 
         diesel::update(users::table.find(info.user_id)).set(user).execute(&connection)?;
 
+        Ok(())
+    }
+
+    pub fn init() -> Result<(),MyStoreError> {
+        use diesel::{QueryDsl, RunQueryDsl};
+        let connection = establish_connection();
+        diesel::insert_into(users::table)
+                .values(NewAdminUser {
+                    email: String::from("admin@admin.ru"),
+                    password: Self::hash_password(String::from("mysecretpassword"))?,
+                    created_at: Local::now().naive_local(),
+                    confirmed: 1,
+                    role: 1
+                })
+                .get_result::<User>(&connection);
         Ok(())
     }
 }
