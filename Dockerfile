@@ -12,3 +12,4 @@ RUN apt-get install -y ca-certificates
 
 RUN update-ca-certificates
 COPY --from=build /${CRATE} .
+RUN chmod +x ./tools/wait.sh

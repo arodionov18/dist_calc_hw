@@ -13,6 +13,3 @@ CREATE TABLE session (
   refresh_token_expire_at TIMESTAMP NOT NULL,
   user_id SERIAL NOT NULL REFERENCES users (id)
 );
-
-INSERT INTO users 
-VALUES (0, 'admin@admin.ru', 'mysecretpassword', NOW(), 1, 1)

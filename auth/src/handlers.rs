@@ -20,6 +20,7 @@ pub async fn confirm(token: web::Path<String>, req: HttpRequest) -> Result<HttpR
 }
 
 pub async fn register(new_user: web::Json<RegisterUser>, req: HttpRequest) -> Result<HttpResponse, HttpResponse> {
+    println!("Entered register handler");
     let register_user = new_user
         .into_inner()
         .validates()

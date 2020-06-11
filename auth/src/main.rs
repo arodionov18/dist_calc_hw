@@ -44,7 +44,7 @@ async fn main() -> std::io::Result<()> {
 
     models::User::init();
 
-    HttpServer::new(|| {
+    let rest = HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
             .data(establish_connection())
@@ -69,13 +69,15 @@ async fn main() -> std::io::Result<()> {
             
     })
         .bind(bind_addr).unwrap()
-        .run()
-        .await;
+        .run();
 
-    Server::builder()
+    log::info!("Http server started");
+
+    let grpc = Server::builder()
     .add_service(AuthentificatorServer::new(authentificator))
-    .serve(grpc_addr)
-    .await;
+    .serve(grpc_addr);
     println!("GRPC server started");
-    Ok(())
+
+    grpc.await;
+    rest.await
 }

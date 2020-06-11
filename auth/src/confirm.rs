@@ -17,13 +17,15 @@ fn create_confirm_link(user: &User) -> Result<String, MyStoreError> {
 pub fn make_new_confirmation(user: &User) -> Result <(), MyStoreError> {
     let link = create_confirm_link(user)?;
     // put message in queue
+    println!("confirm link created");
     let amqp_url = std::env::var("RABBITMQ_URL").unwrap_or_else(|_| String::from("amqp://guest:guest@localhost:5672"));
 
     let mut connection = Connection::insecure_open(&amqp_url)?;
+    println!("connection set");
 
     let channel = connection.open_channel(None)?;
 
-    log::info!("Opened channel");
+    println!("Opened channel");
 
     let exchange = Exchange::direct(&channel);
 
